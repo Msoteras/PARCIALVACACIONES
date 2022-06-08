@@ -83,16 +83,45 @@ islaVecina marea
             | marea == "fuerte" = [paseoEnBarco marea, apreciarAlgunElemento "lago", paseoEnBarco marea]
             | otherwise = [paseoEnBarco marea, irALaPlaya, paseoEnBarco marea]
 
+--Item A
 hacerUnTour :: Turista -> Tour -> Turista
 hacerUnTour turista tour = foldl (\turist excursion -> excursion turist) (turista{stress = aumentar (stress turista) (length tour)}) tour
-{-
-esConvincente :: Turista -> [Tour] -> Bool
-esConvincente turista tours = any
 
-efectividad :: Tour -> [Turistas] -> Number
-efectividad =  -}
+--Item B
+algunoEsConvincente :: Turista -> [Tour] -> Bool
+algunoEsConvincente turista tours = any (esConvincente turista) tours
+
+esConvincente :: Turista -> Tour -> Bool
+esConvincente turista tour = any (estaAcompaniado turista) (excursionesDesestresantes turista tour)
+--                                  any (estaAcompaniado turista). excursionesDesestresantes turista
+
+estaAcompaniado :: Turista -> Excursion -> Bool
+estaAcompaniado turista excursion = viajaSolo (excursion turista)
+
+--Item c
+efectividad :: Tour -> [Turista] -> Number
+efectividad tour turistas =  sum (espiritualidadConjunto (filtrarConvincente turistas tour) tour)
+
+filtrarConvincente :: [Turista] -> Tour -> [Turista]
+filtrarConvincente turistas tour = filter (flip esConvincente tour) turistas
+
+espiritualidadConjunto :: [Turista] -> Tour -> [Number]
+espiritualidadConjunto turistas tour = map (espiritualidad tour) turistas
+
+espiritualidad :: Tour -> Turista -> Number
+espiritualidad tour turista = deltaSegun stress turista (hacerUnTour turista tour) + deltaSegun cansancio turista (hacerUnTour turista tour)
 
 -- Punto 4
 
 infinitasPlayas :: Tour
-infinitasPlayas = irALaPlaya:infinitasPlayas
+infinitasPlayas = cycle infinitasPlayas
+
+{-Este tour si podria ser convincente para Ana ya que por mas que sea Infinito el tour sserá desestresante luego de una sola excursion y
+ella ya está acompñanada, por lo que por uso de lazy evalution no seguiria chequeando otras excrusiones
+En cambio con Beto no podriamos saberlo puesto que como él viaja solo e ir a la playa no agrega acompañamiento,
+el codigo seguiria ejecutandose en loop ya que estaria en busqueda de la excursion que sea convincente para siempre
+
+item c
+
+Nunca podriamos saber la efectividad del tour ya que esta se obitene una vez las personas terminan de viajar, entonces
+no podria calcularse ya que estos turistas nunca terminarian sus infinitas excursiones -}
